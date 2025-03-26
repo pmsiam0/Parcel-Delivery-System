@@ -1,16 +1,14 @@
-# Customer Management
-Core Data Structure: Linked List
+# Delivery Status Tracking (Person 2)
+Tasks:
 
-Responsibilities:
+Add functionality to track the status of each parcel:
 
-Manage and manipulate customer details (e.g., customer ID, name, phone, linked parcels).
+Status options: "Pending," "In-Transit," "Delivered."
 
-Link parcels to customers.
+Allow updates to delivery status as parcels move through the system.
 
-Implement functions to:
+Display status for all parcels, along with parcel details.
 
-Add, update, and delete customer details.
+Implement a search feature to check the status of a specific parcel by ID.
 
-Search and display customer details.
-
-Link customer data with parcel data.
+Contribution: Enables monitoring and updating of delivery progress.
