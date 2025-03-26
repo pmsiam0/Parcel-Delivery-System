@@ -1,26 +1,18 @@
-# Transaction History and Reporting
-Core Data Structure: Stack (LIFO)
+# Parcel Tracking and Confirmation (Person 5)
+Tasks:
 
-Responsibilities:
+Implement Parcel Tracking using unique IDs:
 
-Use a stack to track recent transactions (e.g., adding or delivering parcels).
+Generate unique parcel IDs during input.
 
-Provide functionality to undo recent operations (via stack pop).
+Allow users to search for parcel details using the ID.
 
-Generate system reports:
+Add Delivery Confirmation:
 
-Total parcels delivered.
+When a parcel is delivered, mark it as "Delivered" and display a confirmation message.
 
-Pending parcels by priority.
+Store delivery confirmation details for future reference (e.g., in a stack or list).
 
-Top customers by parcel count.
+Allow users to review delivered parcels and their details.
 
-Implement functions to:
-
-Push transactions onto the stack.
-
-Pop transactions for undo or audit.
-
-Display the transaction history.
-
-Generate reports.
+Contribution: Completes the tracking and delivery confirmation system.
