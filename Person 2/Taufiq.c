@@ -127,7 +127,7 @@ int main() {
         printf("6. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
-        getchar();  // To consume newline after scanf
+        getchar();
         
         switch (choice) {
             case 1:
