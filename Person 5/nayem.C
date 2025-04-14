@@ -5,55 +5,55 @@
 
 #define MAX_PARCELS 100
 
-// Structure for Parcel data
+
 typedef struct {
     int parcelID;
     char sender[50];
     char receiver[50];
     char address[100];
     int priority;
-    char status[20];  // Pending, In-Transit, Delivered
-    char deliveryConfirmation[100]; // Delivery Confirmation details
+    char status[20];  
+    char deliveryConfirmation[100]; 
 } Parcel;
 
-// Array to store parcels
+
 Parcel parcels[MAX_PARCELS];
 int parcelCount = 0;
 
-// Function to generate unique Parcel ID
+
 int generateParcelID() {
     return parcelCount + 1;
 }
 
-// Function to add a parcel
+
 void addParcel() {
     if (parcelCount < MAX_PARCELS) {
         Parcel newParcel;
 
-        // Generate unique Parcel ID
+      
         newParcel.parcelID = generateParcelID();
 
-        // Input parcel details
+        
         printf("Enter sender name: ");
-        getchar();  // Clear the input buffer
+        getchar(); 
         fgets(newParcel.sender, 50, stdin);
-        newParcel.sender[strcspn(newParcel.sender, "\n")] = '\0'; // Remove newline character
+        newParcel.sender[strcspn(newParcel.sender, "\n")] = '\0'; 
 
         printf("Enter receiver name: ");
         fgets(newParcel.receiver, 50, stdin);
-        newParcel.receiver[strcspn(newParcel.receiver, "\n")] = '\0'; // Remove newline character
+        newParcel.receiver[strcspn(newParcel.receiver, "\n")] = '\0'; 
 
         printf("Enter address: ");
         fgets(newParcel.address, 100, stdin);
-        newParcel.address[strcspn(newParcel.address, "\n")] = '\0'; // Remove newline character
+        newParcel.address[strcspn(newParcel.address, "\n")] = '\0'; 
 
         printf("Enter priority (1 - High, 2 - Medium, 3 - Low): ");
         scanf("%d", &newParcel.priority);
 
-        // Set status as "Pending" initially
+        
         strcpy(newParcel.status, "Pending");
 
-        // Add the parcel to the array
+        
         parcels[parcelCount] = newParcel;
         parcelCount++;
 
@@ -63,7 +63,7 @@ void addParcel() {
     }
 }
 
-// Function to display all parcels
+
 void displayParcels() {
     if (parcelCount == 0) {
         printf("No parcels to display.\n");
@@ -82,7 +82,7 @@ void displayParcels() {
     }
 }
 
-// Function to mark parcel as delivered and add confirmation
+
 void markAsDelivered(int parcelID) {
     for (int i = 0; i < parcelCount; i++) {
         if (parcels[i].parcelID == parcelID) {
@@ -90,7 +90,7 @@ void markAsDelivered(int parcelID) {
             printf("Enter delivery confirmation details: ");
             getchar();  // Clear the input buffer
             fgets(parcels[i].deliveryConfirmation, 100, stdin);
-            parcels[i].deliveryConfirmation[strcspn(parcels[i].deliveryConfirmation, "\n")] = '\0'; // Remove newline character
+            parcels[i].deliveryConfirmation[strcspn(parcels[i].deliveryConfirmation, "\n")] = '\0'; 
             printf("Parcel ID %d has been marked as Delivered.\n", parcelID);
             return;
         }
@@ -98,7 +98,7 @@ void markAsDelivered(int parcelID) {
     printf("Parcel ID %d not found.\n", parcelID);
 }
 
-// Function to search parcel by ID
+
 void searchParcelByID(int parcelID) {
     for (int i = 0; i < parcelCount; i++) {
         if (parcels[i].parcelID == parcelID) {
