@@ -22,18 +22,20 @@ typedef struct {
 typedef struct {
     Parcel items[MAX_PARCELS];
     int front, rear;
+    int size;
 } DeliveryQueue;
 
 void initializeQueue(DeliveryQueue *q) {
     q->front = q->rear = -1;
+    q->size = 0;
 }
 
 int isQueueEmpty(DeliveryQueue *q) {
-    return q->front == -1;
+    return q->size == 0;
 }
 
 int isQueueFull(DeliveryQueue *q) {
-    return (q->rear + 1) % MAX_PARCELS == q->front;
+    return q->size == MAX_PARCELS;
 }
 
 void enqueue(DeliveryQueue *q, Parcel p) {
@@ -49,6 +51,7 @@ void enqueue(DeliveryQueue *q, Parcel p) {
     }
 
     q->items[q->rear] = p;
+    q->size++;
     printf("\nParcel %d added to delivery queue.\n", p.id);
 }
 
@@ -60,25 +63,27 @@ Parcel dequeue(DeliveryQueue *q) {
     }
 
     Parcel p = q->items[q->front];
-
+    
     if (q->front == q->rear) {
         q->front = q->rear = -1;
     } else {
         q->front = (q->front + 1) % MAX_PARCELS;
     }
-
+    
+    q->size--;
     return p;
 }
 
 void updateStatus(DeliveryQueue *q, int id, char *newStatus) {
-    for (int i = q->front; i != (q->rear + 1) % MAX_PARCELS; i = (i + 1) % MAX_PARCELS) {
-        if (q->items[i].id == id) {
-            strcpy(q->items[i].status, newStatus);
+    for (int i = 0; i < q->size; i++) {
+        int index = (q->front + i) % MAX_PARCELS;
+        if (q->items[index].id == id) {
+            strcpy(q->items[index].status, newStatus);
             if (strcmp(newStatus, "Delivered") == 0) {
                 time_t now = time(NULL);
                 struct tm *t = localtime(&now);
-                strftime(q->items[i].actualDelivery, DATE_LENGTH, "%Y-%m-%d", t);
-                printf("\nParcel %d delivered on %s. Confirmation sent.\n", id, q->items[i].actualDelivery);
+                strftime(q->items[index].actualDelivery, DATE_LENGTH, "%Y-%m-%d", t);
+                printf("\nParcel %d delivered on %s. Confirmation sent.\n", id, q->items[index].actualDelivery);
             }
             return;
         }
@@ -87,25 +92,35 @@ void updateStatus(DeliveryQueue *q, int id, char *newStatus) {
 }
 
 void trackParcel(DeliveryQueue *q, int id) {
-    for (int i = q->front; i != (q->rear + 1) % MAX_PARCELS; i = (i + 1) % MAX_PARCELS) {
-        if (q->items[i].id == id) {
-            printf("\n╔══════════════════════════════════════╗\n");
-            printf("║          PARCEL INFORMATION         ║\n");
-            printf("╠══════════════════════════════════════╣\n");
-            printf("║ ID: %-32d ║\n", q->items[i].id);
-            printf("║ Sender: %-27s ║\n", q->items[i].sender);
-            printf("║ Receiver: %-25s ║\n", q->items[i].receiver);
-            printf("║ Status: %-28s ║\n", q->items[i].status);
-            printf("║ Priority: %-26d ║\n", q->items[i].priority);
-            printf("║ Expected Delivery: %-17s ║\n", q->items[i].expectedDelivery);
-            if (strcmp(q->items[i].status, "Delivered") == 0) {
-                printf("║ Actual Delivery: %-18s ║\n", q->items[i].actualDelivery);
+    if (isQueueEmpty(q)) {
+        printf("\nQueue is empty. No parcels to track.\n");
+        return;
+    }
+
+    for (int i = 0; i < q->size; i++) {
+        int index = (q->front + i) % MAX_PARCELS;
+        if (q->items[index].id == id) {
+            printf("\n+------------------------------------------+\n");
+            printf("|           PARCEL INFORMATION             |\n");
+            printf("+------------------------------------------+\n");
+            printf("| ID: %-34d |\n", q->items[index].id);
+            printf("| Sender: %-30s |\n", q->items[index].sender);
+            printf("| Receiver: %-28s |\n", q->items[index].receiver);
+            printf("| Address: %-29s |\n", q->items[index].address);
+            printf("| Status: %-30s |\n", q->items[index].status);
+            printf("| Priority: %-28d |\n", q->items[index].priority);
+            printf("| Expected Delivery: %-19s |\n", q->items[index].expectedDelivery);
+            if (strcmp(q->items[index].status, "Delivered") == 0) {
+                printf("| Actual Delivery: %-20s |\n", q->items[index].actualDelivery);
+            } else {
+                printf("| Actual Delivery: %-20s |\n", "Not delivered");
             }
-            printf("╚══════════════════════════════════════╝\n");
+            printf("+------------------------------------------+\n");
             return;
         }
     }
-    printf("\nParcel ID %d not found.\n", id);
+
+    printf("\nParcel ID %d not found in the delivery queue.\n", id);
 }
 
 void displayQueue(DeliveryQueue *q) {
@@ -114,23 +129,18 @@ void displayQueue(DeliveryQueue *q) {
         return;
     }
 
-    printf("\n╔══════════════════════════════════════════════════════════════╗\n");
-    printf("║                     CURRENT DELIVERY QUEUE                   ║\n");
-    printf("╠══════╦══════════╦══════════╦═════════════════╦═══════════════╣\n");
-    printf("║  ID  ║  Status  ║ Priority ║ Expected Delivery║    Address    ║\n");
-    printf("╠══════╬══════════╬══════════╬═════════════════╬═══════════════╣\n");
+    printf("\n+-----+----------+----------+-----------------+---------------+\n");
+    printf("| ID  |  Status  | Priority | Expected Delivery|    Address    |\n");
+    printf("+-----+----------+----------+-----------------+---------------+\n");
 
-    int i = q->front;
-    while (1) {
-        printf("║ %-4d ║ %-8s ║    %-4d ║ %-15s ║ %-13s ║\n",
-               q->items[i].id, q->items[i].status,
-               q->items[i].priority, q->items[i].expectedDelivery,
-               q->items[i].address);
-
-        if (i == q->rear) break;
-        i = (i + 1) % MAX_PARCELS;
+    for (int i = 0; i < q->size; i++) {
+        int index = (q->front + i) % MAX_PARCELS;
+        printf("| %-3d | %-8s |    %-4d | %-15s | %-13s |\n",
+               q->items[index].id, q->items[index].status,
+               q->items[index].priority, q->items[index].expectedDelivery,
+               q->items[index].address);
     }
-    printf("╚══════╩══════════╩══════════╩═════════════════╩═══════════════╝\n");
+    printf("+-----+----------+----------+-----------------+---------------+\n");
 }
 
 void clearScreen() {
@@ -143,44 +153,50 @@ void clearScreen() {
 
 void displayMenu() {
     clearScreen();
-
-
-    printf("╔══════════════════════════════════════╗\n");
-    printf("║          DELIVERY MANAGEMENT         ║\n");
-    printf("╠══════════════════════════════════════╣\n");
-    printf("║  1. 📦 Add New Parcel                ║\n");
-    printf("║  2. 🚚 Process Next Delivery         ║\n");
-    printf("║  3. 🔄 Update Parcel Status          ║\n");
-    printf("║  4. 🔍 Track Parcel                  ║\n");
-    printf("║  5. 📋 View Delivery Queue           ║\n");
-    printf("║  6. 🚪 Exit System                   ║\n");
-    printf("╚══════════════════════════════════════╝\n\n");
+    
+    printf("========================================\n");
+    printf("|          DELIVERY MANAGEMENT         |\n");
+    printf("|--------------------------------------|\n");
+    printf("|  1. [📦] Add New Parcel              |\n");
+    printf("|  2. [🚚] Process Next Delivery       |\n");
+    printf("|  3. [🔄] Update Parcel Status        |\n");
+    printf("|  4. [🔍] Track Parcel                |\n");
+    printf("|  5. [📋] View Delivery Queue         |\n");
+    printf("|  6. [✅] Confirm Delivery            |\n");
+    printf("|  7. [🚪] Exit System                 |\n");
+    printf("========================================\n\n");
+}
+void flushInput() {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
 }
 
 int getMenuChoice() {
     int choice;
     int valid_input = 0;
-    
+
     do {
-        printf("Select an option (1-6): ");
+        printf("Select an option (1-7): ");
         if (scanf("%d", &choice) != 1) {
-            while (getchar() != '\n');
+            flushInput(); 
             printf("Invalid input. Please enter a number.\n");
-        } else if (choice < 1 || choice > 6) {
-            printf("Please enter a number between 1 and 6.\n");
+        } else if (choice < 1 || choice > 7) {
+            printf("Please enter a number between 1 and 7.\n");
         } else {
+            flushInput(); 
             valid_input = 1;
         }
-        getchar();
     } while (!valid_input);
-    
+
     return choice;
 }
 
+
 void pressEnterToContinue() {
     printf("\nPress Enter to continue...");
-    while (getchar() != '\n');
+    flushInput();
 }
+
 
 int main() {
     DeliveryQueue queue;
@@ -231,11 +247,14 @@ int main() {
                 break;
             }
             case 2: {
-                Parcel p = dequeue(&queue);
-                if (p.id != 0) {
-                    printf("\nProcessing delivery for Parcel ID %d...\n", p.id);
-                    updateStatus(&queue, p.id, "In-Transit");
+                if (isQueueEmpty(&queue)) {
+                    printf("\nQueue is empty.\n");
+                    pressEnterToContinue();
+                    break;
                 }
+                Parcel p = queue.items[queue.front];
+                printf("\nProcessing delivery for Parcel ID %d...\n", p.id);
+                updateStatus(&queue, p.id, "In-Transit");
                 pressEnterToContinue();
                 break;
             }
@@ -253,18 +272,36 @@ int main() {
                 break;
             }
             case 4: {
-                int id;
-                printf("\nEnter Parcel ID to track: ");
-                scanf("%d", &id);
-                trackParcel(&queue, id);
-                pressEnterToContinue();
-                break;
-            }
+    int id;
+    printf("\nEnter Parcel ID to track: ");
+    if (scanf("%d", &id) != 1) {
+        flushInput();
+        printf("Invalid input.\n");
+        pressEnterToContinue();
+        break;
+    }
+    flushInput(); 
+    trackParcel(&queue, id);
+    pressEnterToContinue();
+    break;
+}
+
             case 5:
                 displayQueue(&queue);
                 pressEnterToContinue();
                 break;
-            case 6:
+            case 6: {
+                if (isQueueEmpty(&queue)) {
+                    printf("\nQueue is empty.\n");
+                    pressEnterToContinue();
+                    break;
+                }
+                Parcel p = dequeue(&queue);
+                printf("\nConfirmed delivery for Parcel ID %d\n", p.id);
+                pressEnterToContinue();
+                break;
+            }
+            case 7:
                 printf(COLOR_CYAN "\nThank you for using the Parcel Delivery System!\n");
                 printf("Exiting...\n\n" COLOR_RESET);
                 exit(0);
