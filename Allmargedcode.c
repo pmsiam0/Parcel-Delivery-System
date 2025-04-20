@@ -190,6 +190,19 @@ int getMenuChoice() {
 
     return choice;
 }
+int findHighestPriorityIndex(DeliveryQueue *q) {
+    int highestIndex = -1;
+    int highestPriority = -1;
+
+    for (int i = 0; i < q->size; i++) {
+        int index = (q->front + i) % MAX_PARCELS;
+        if (q->items[index].priority > highestPriority) {
+            highestPriority = q->items[index].priority;
+            highestIndex = index;
+        }
+    }
+    return highestIndex;
+}
 
 
 void pressEnterToContinue() {
@@ -252,9 +265,13 @@ int main() {
                     pressEnterToContinue();
                     break;
                 }
-                Parcel p = queue.items[queue.front];
-                printf("\nProcessing delivery for Parcel ID %d...\n", p.id);
-                updateStatus(&queue, p.id, "In-Transit");
+                int index = findHighestPriorityIndex(&queue);
+if (index != -1) {
+    printf("\nProcessing delivery for Parcel ID %d...\n", queue.items[index].id);
+    updateStatus(&queue, queue.items[index].id, "In-Transit");
+}
+
+
                 pressEnterToContinue();
                 break;
             }
@@ -296,8 +313,25 @@ int main() {
                     pressEnterToContinue();
                     break;
                 }
-                Parcel p = dequeue(&queue);
-                printf("\nConfirmed delivery for Parcel ID %d\n", p.id);
+                int index = findHighestPriorityIndex(&queue);
+if (index == -1) {
+    printf("\nQueue is empty.\n");
+    pressEnterToContinue();
+    break;
+}
+
+Parcel p = queue.items[index];
+updateStatus(&queue, p.id, "Delivered");
+
+for (int i = index; i != queue.rear; i = (i + 1) % MAX_PARCELS) {
+    int next = (i + 1) % MAX_PARCELS;
+    queue.items[i] = queue.items[next];
+}
+queue.rear = (queue.rear - 1 + MAX_PARCELS) % MAX_PARCELS;
+queue.size--;
+
+printf("\nConfirmed delivery for Parcel ID %d\n", p.id);
+
                 pressEnterToContinue();
                 break;
             }
